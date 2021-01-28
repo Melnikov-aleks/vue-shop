@@ -1,30 +1,61 @@
 <template>
-  <div id="nav">
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
+  <header>
+    <div class="container">
+      <div class="row">
+        <div class="col col-sm-3">
+          <div>In Cart: {{}}</div>
+        </div>
+      </div>
+      <hr />
+    </div>
+  </header>
+  <div class="content"></div>
+  <div class="container">
+    <div class="row">
+      <div class="col col-sm-3 menu">
+        <ul class="list-group">
+          <li
+            v-for="category in categories"
+            :key="category"
+            class="list-group-item"
+          >
+            <a href="#">{{ category }}</a>
+          </li>
+        </ul>
+      </div>
+      <div class="col col-sm-9">
+        <products></products>
+      </div>
+    </div>
   </div>
-  <router-view/>
 </template>
 
+<script>
+import Products from '@/components/Products.vue';
+import { mapGetters } from 'vuex';
+
+export default {
+  components: { Products },
+  computed: {
+    ...mapGetters('products', { categories: 'getCategories' }),
+  },
+};
+</script>
+
 <style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+.menu {
+  border-right: 1px solid #ddd;
 }
 
-#nav {
-  padding: 30px;
+.list-group-item {
+  transition: background 0.3s, color 0.3s;
+}
 
-  a {
-    font-weight: bold;
-    color: #2c3e50;
+.list-group-item a {
+  text-decoration: none;
+}
 
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
+.list-group-item.active a {
+  color: inherit;
 }
 </style>

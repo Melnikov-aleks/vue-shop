@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
+import E404 from '@/views/E404.vue';
 import Catalog from '@/views/Catalog.vue';
 import Cart from '@/views/Cart.vue';
 import Product from '@/views/Product.vue';
@@ -15,15 +16,15 @@ const routes = [
   },
   { name: 'cart', path: '/cart', component: Cart },
   {
-    name: 'checkout',
     path: '/checkout',
     component: Checkout,
     children: [
-      { name: 'checkoutStep1', path: '', component: FormMain },
-      { name: 'checkoutStepPayment', path: '', component: FormPayment },
+      { name: 'checkout', path: '', component: FormMain },
+      { name: 'checkoutStepPayment', path: 'payment', component: FormPayment },
     ],
   },
   { name: 'product', path: '/prodict/:id', component: Product },
+  { path: '/:pathMatch(.*)*', name: 'E404', component: E404 },
 ];
 
 const router = createRouter({

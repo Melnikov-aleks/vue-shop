@@ -1,7 +1,7 @@
 <template>
   <div class="row justify-content-center">
     <div class="col-6">
-      <form action="">
+      <form @submit.prevent="$router.push({ name: 'checkoutStepPayment' })">
         <div class="form-row">
           <div class="form-group col-md-6">
             <input
@@ -56,27 +56,14 @@
             />
           </div>
         </div>
-        <button
-          class="btn btn-outline-success"
-          @click.prevent="$router.push({ name: 'checkoutStepPayment' })"
-        >
-          <!-- @click="add({ id: product.id, cnt: 1 })" -->
-          +
-        </button>
+        <button class="btn btn-outline-success" type="submit">Next</button>
       </form>
-      <router-link :to="{ name: 'checkoutStepPayment' }">Next</router-link>
     </div>
   </div>
 </template>
 
 <script>
-export default {
-  methods: {
-    test() {
-      this.$router.push({ name: 'checkoutStepPayment' });
-    },
-  },
-};
+export default {};
 </script>
 
 <style>

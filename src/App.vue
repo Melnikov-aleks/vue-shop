@@ -2,13 +2,17 @@
   <header>
     <div class="container">
       <div class="row">
-        <div class="col col-sm-6 text-center">
-          <router-link :to="{ name: 'catalog' }">Shop</router-link>
+        <div class="col col-2 text-center"></div>
+        <div class="col col-8 text-center">
+          <router-link class="lead" :to="{ name: 'catalog' }"
+            >Vue-Shop</router-link
+          >
         </div>
-        <div class="col col-sm-6 text-center">
+        <div class="col col-2 text-center">
           <app-auth-info></app-auth-info>
-          <router-link :to="{ name: 'cart' }"
-            >In Cart: {{ length }}</router-link
+          <router-link class="text-decoration-none" :to="{ name: 'cart' }">
+            <fa-icon icon="shopping-cart"></fa-icon>
+            {{ length }}</router-link
           >
         </div>
       </div>
@@ -16,58 +20,30 @@
     </div>
   </header>
   <div class="container">
-    <!-- <div class="row">
-      <div class="col col-sm-3 menu">
-        <ul class="list-group">
-          <li
-            v-for="category in categories"
-            :key="category"
-            class="list-group-item"
-          >
-            <a href="#">{{ category }}</a>
-          </li>
-        </ul>
-      </div>
-      <div class="col col-sm-9">
-      </div>
-    </div> -->
     <router-view></router-view>
   </div>
 </template>
 
 <script>
+import { FontAwesomeIcon as FaIcon } from '@fortawesome/vue-fontawesome';
 import { mapGetters, mapActions } from 'vuex';
 import AppAuthInfo from '@/components/AuthInfo.vue';
 
 export default {
-  components: { AppAuthInfo },
+  components: { AppAuthInfo, FaIcon },
   created() {
-    this.loadProducts();
     this.loadCategories();
+    this.checkUser();
   },
   computed: {
     ...mapGetters('cart', ['length']),
   },
   methods: {
     ...mapActions('products', ['loadProducts', 'loadCategories']),
+    ...mapActions('user', ['checkUser']),
   },
 };
 </script>
 
 <style lang="scss">
-.menu {
-  border-right: 1px solid #ddd;
-}
-
-.list-group-item {
-  transition: background 0.3s, color 0.3s;
-}
-
-.list-group-item a {
-  text-decoration: none;
-}
-
-.list-group-item.active a {
-  color: inherit;
-}
 </style>

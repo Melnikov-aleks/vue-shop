@@ -1,35 +1,48 @@
 <template>
-  <p v-if="hasLogin" class="" @click="onLogOut">LogOut</p>
-  <div v-else class="row">
-    <div class="col col-sm-6" @click="openModal('login')">Login</div>
-    <div class="col col-sm-6" @click="openModal('register')">Register</div>
+  <p v-if="hasLogin" class="text-center mb-1" type="button" @click="onLogOut">
+    LogOut
+  </p>
+  <div v-else class="row mb-1">
+    <p
+      class="col col-6 text-center d-inline-block m-0"
+      type="button"
+      @click="openModal('login')"
+    >
+      Login
+    </p>
+    <p
+      class="col col-6 text-center d-inline-block m-0"
+      type="button"
+      @click="openModal('register')"
+    >
+      Register
+    </p>
   </div>
-  <teleport to="body">
-    <auth-popup v-if="modal === 'open'" @close="closeModal">
-      <template v-slot:title>{{
-        modalType.charAt(0).toUpperCase() + modalType.slice(1)
-      }}</template>
-      <template v-slot:default>
-        <app-login
-          v-if="modalType === 'login'"
-          @done="closeModal"
-          @changeAuth="openModal"
-        ></app-login>
-        <app-register
-          v-else-if="modalType === 'register'"
-          @done="closeModal"
-          @changeAuth="openModal"
-        ></app-register>
-      </template>
-    </auth-popup>
-  </teleport>
+
+  <auth-popup v-if="modal === 'open'" @close="closeModal">
+    <template v-slot:title>{{
+      modalType.charAt(0).toUpperCase() + modalType.slice(1)
+    }}</template>
+    <template v-slot:default>
+      <app-login
+        v-if="modalType === 'login'"
+        @done="closeModal"
+        @changeAuth="openModal"
+      ></app-login>
+      <app-register
+        v-else-if="modalType === 'register'"
+        @done="closeModal"
+        @changeAuth="openModal"
+      ></app-register>
+    </template>
+  </auth-popup>
 </template>
 
 <script>
 import { mapActions, mapGetters } from 'vuex';
-import AuthPopup from '@/components/AuthPopup.vue';
-import AppLogin from '@/components/Login.vue';
-import AppRegister from '@/components/Register.vue';
+import AuthPopup from './Popup.vue';
+import AppLogin from './LoginForm.vue';
+import AppRegister from './RegisterForm.vue';
 
 export default {
   components: { AuthPopup, AppLogin, AppRegister },
@@ -57,7 +70,6 @@ export default {
       this.modalType = null;
     },
     ...mapActions('user', ['logOut']),
-    // ...mapActions('auth', ['openModal']),
   },
 };
 </script>

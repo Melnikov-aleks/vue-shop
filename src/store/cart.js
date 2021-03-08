@@ -1,9 +1,10 @@
-import axios from 'axios';
+import { DatabaseUser } from '@/api/';
 
 export default {
   namespaced: true,
   state: {
     items: [],
+    loading: false,
   },
   getters: {
     all(state) {
@@ -25,24 +26,30 @@ export default {
     },
   },
   mutations: {
+    clearCart(state) {
+      state.items = [];
+    },
     addProd(state, prod) {
       state.items.push({ ...prod, cnt: Math.max(1, prod.cnt) });
     },
     setCnt(state, { idx, newCnt }) {
       state.items[idx].cnt = Math.max(1, newCnt);
     },
-    // changeCnt(state, { idx, addCnt }) {
-    //   state.items[idx].cnt = Math.max(1, state.items[idx].cnt + addCnt);
-    // },
     remove(state, id) {
       state.items = state.items.filter((pr) => pr.id !== id);
     },
     setCart(state, cart) {
       state.items = [...cart];
     },
+    startReq(state) {
+      state.loading = true;
+    },
+    endReq(state) {
+      state.loading = false;
+    },
   },
   actions: {
-    async add(ctx, info) {
+    add(ctx, info) {
       const idx = ctx.getters.findProdIdx(info.id);
       if (idx === -1) {
         ctx.dispatch('toRemoteCart', info);
@@ -52,7 +59,6 @@ export default {
     set(ctx, info) {
       const idx = ctx.getters.findProdIdx(info.id);
       const newCnt = parseInt(info.cnt, 10) || 1;
-
       ctx.dispatch('toRemoteCart', {
         ...info,
         cnt: newCnt,
@@ -62,55 +68,48 @@ export default {
         newCnt,
       });
     },
-    async toRemoteCart(ctx, prod) {
+    toRemoteCart(ctx, prod) {
       if (ctx.rootGetters['user/hasLogin']) {
-        try {
-          axios.patch(
-            `https://vue-store-ad75d-default-rtdb.firebaseio.com/users/${ctx.rootGetters['user/userID']}/cart/${prod.id}.json`,
-            {
-              cnt: prod.cnt,
-              title: prod.title,
-              price: prod.price,
-            }
-          );
-        } catch (e) {
-          console.log(e);
-        }
+        DatabaseUser.editItem(ctx.rootGetters['user/userID'], prod.id, {
+          cnt: prod.cnt,
+          title: prod.title,
+          price: prod.price,
+        });
       }
     },
     async remove(ctx, id) {
       if (ctx.rootGetters['user/hasLogin']) {
-        try {
-          await axios.delete(
-            `https://vue-store-ad75d-default-rtdb.firebaseio.com/users/${ctx.rootGetters['user/userID']}/cart/${id}.json`
-          );
-        } catch (e) {
-          console.log(e);
-        }
+        await DatabaseUser.removeItem(ctx.rootGetters['user/userID'], id);
       }
       ctx.commit('remove', id);
     },
     async compileCart(ctx, userID) {
+      const cart = await ctx.dispatch('doRequest', DatabaseUser.getCart(userID));
+      if (cart) {
+        const newCart = [
+          ...ctx.state.items,
+          ...Object.keys(cart)
+            .filter((key) => ctx.getters.findProdIdx(key) === -1)
+            .map((key) => ({ ...cart[key], id: key })),
+        ];
+        ctx.commit('setCart', newCart);
+      }
+      DatabaseUser.setCart(userID, ctx.getters.itemsToSending);
+    },
+    async toOrder(ctx) {
+      await DatabaseUser.toOrder(
+        ctx.rootGetters['user/userID'],
+        ctx.getters.itemsToSending
+      );
+      ctx.commit('clearCart');
+    },
+    async doRequest(ctx, request) {
       try {
-        const resp = await axios.get(
-          `https://vue-store-ad75d-default-rtdb.firebaseio.com/users/${userID}/cart.json`
-        );
-        const cart = resp.data;
-        if (cart) {
-          const newCart = [
-            ...ctx.state.items,
-            ...Object.keys(cart)
-              .filter((key) => ctx.getters.findProdIdx(key) === -1)
-              .map((key) => ({ ...cart[key], id: key })),
-          ];
-          ctx.commit('setCart', newCart);
-        }
-        axios.put(
-          `https://vue-store-ad75d-default-rtdb.firebaseio.com/users/${userID}/cart.json`,
-          ctx.getters.itemsToSending
-        );
-      } catch (e) {
-        console.log(e);
+        ctx.commit('startReq');
+        const resp = await request;
+        return resp;
+      } finally {
+        ctx.commit('endReq');
       }
     },
   },

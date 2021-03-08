@@ -3,15 +3,18 @@
     <div class="card text-center">
       <div class="card-body">
         <img class="card-img-top h-50 d-inline-block" :src="product.image" />
-        <h4 class="card-title">{{ product.title }}</h4>
-        <router-link :to="{ name: 'product', params: { id: product.id } }"
-          >Read more</router-link
+        <router-link
+          :to="{ name: 'product', params: { id: product.id } }"
+          custom
+          v-slot="{ navigate }"
+        >
+          <h4 class="card-title" @click="navigate" type="button">
+            {{ product.title }}
+          </h4></router-link
         >
         <hr />
         <div class="input-group">
           <input type="number" class="form-control" v-model="cnt" />
-          <!-- @change="onInput" -->
-          <!-- :value="cnt" -->
           <div class="input-group-append">
             <button
               class="btn btn-success"

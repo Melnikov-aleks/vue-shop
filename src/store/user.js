@@ -1,12 +1,8 @@
-import axios from 'axios';
-
-const apiKey = 'AIzaSyDoMeHm1iBnf1yBPHlHaHBcp9fnV8wKVkY';
+import { Auth } from '@/api/';
 
 class User {
   constructor(user) {
     this.id = user.localId;
-    this.token = user.idToken;
-    this.refreshToken = user.refreshToken;
   }
 }
 
@@ -14,10 +10,14 @@ export default {
   namespaced: true,
   state: {
     user: {},
+    loading: false,
   },
   getters: {
+    isLoading(state) {
+      return state.loading;
+    },
     hasLogin(state) {
-      return !!state.user?.token;
+      return !!state.user?.id;
     },
     userID(state) {
       return state.user.id;
@@ -25,44 +25,64 @@ export default {
   },
   mutations: {
     setUser(state, user) {
-      state.user = user;
+      state.user = new User(user);
     },
     clearUser(state) {
       state.user = {};
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
     },
-    setUserCart(state, cart) {
-      state.user.cart = cart;
+    startReq(state) {
+      state.loading = true;
+    },
+    endReq(state) {
+      state.loading = false;
     },
   },
   actions: {
     logOut(ctx) {
       ctx.commit('clearUser');
+      ctx.commit('cart/clearCart', null, { root: true });
     },
     async register(ctx, { email, password }) {
-      try {
-        const respUsr = await axios.post(
-          `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,
-          { email, password, returnSecureToken: true }
-        );
-        ctx.dispatch('createUser', respUsr.data);
-      } catch (e) {
-        console.log(e);
-      }
+      if (ctx.getters.isLoading) throw new Error('Not available');
+      const user = await ctx.dispatch('doRequest', Auth.register(email, password));
+      ctx.dispatch('createUser', user);
     },
     async login(ctx, { email, password }) {
-      try {
-        const respUsr = await axios.post(
-          `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
-          { email, password, returnSecureToken: true }
-        );
-        ctx.dispatch('createUser', respUsr.data);
-      } catch (e) {
-        console.log(e);
+      if (ctx.getters.isLoading) throw new Error('Not available');
+      const user = await ctx.dispatch('doRequest', Auth.login(email, password));
+      ctx.dispatch('createUser', user);
+    },
+    createUser(ctx, user) {
+      localStorage.setItem('token', user.idToken);
+      localStorage.setItem('refreshToken', user.refreshToken);
+
+      ctx.commit('setUser', user);
+      ctx.dispatch('cart/compileCart', ctx.getters.userID, { root: true });
+    },
+    async checkUser(ctx) {
+      if (localStorage.getItem('token')) {
+        try {
+          const user = await ctx.dispatch(
+            'doRequest',
+            Auth.getUserByToken(localStorage.getItem('token'))
+          );
+          ctx.commit('setUser', user);
+          ctx.dispatch('cart/compileCart', ctx.getters.userID, { root: true });
+        } catch (e) {
+          ctx.commit('clearUser');
+        }
       }
     },
-    async createUser(ctx, user) {
-      ctx.commit('setUser', new User(user));
-      ctx.dispatch('cart/compileCart', ctx.getters.userID, { root: true });
+    async doRequest(ctx, request) {
+      try {
+        ctx.commit('startReq');
+        const resp = await request;
+        return resp;
+      } finally {
+        ctx.commit('endReq');
+      }
     },
   },
 };

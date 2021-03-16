@@ -1,0 +1,21 @@
+{
+  "rules": {
+    // ".read": "now < 1616961600000",  // 2021-3-29
+    // ".write": "now < 1616961600000",  // 2021-3-29
+    "products": {
+      ".read":"true",
+      ".write":"false",
+      ".indexOn": ["category"]
+    },
+    "categories": {
+      ".read":"true",
+      ".write":"false",
+    },
+    "users":{
+      "$uid":{
+        ".read":"auth.uid==$uid",
+        ".write":"auth.uid==$uid"
+      }
+    }
+  }
+}

@@ -9,6 +9,7 @@ import FormMain from '@/views/checkout/Form1.vue';
 import FormPayment from '@/views/checkout/FormPayment.vue';
 
 const routes = [
+  { path: '/', redirect: { name: 'catalog' } },
   {
     name: 'catalog',
     path: '/catalog/:category(.*)*',
